@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtualenv
+venv/
+.venv/
+env/
+
+# Django
+*.sqlite3
+*.db
+backend/staticfiles/
+backend/media/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Странные артефакты от шелла на Windows (брейс-экспансия)
+{backend,frontend}/
+{backend,frontend,tests}/

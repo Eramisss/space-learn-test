@@ -1,0 +1,8 @@
+# Зависимости проекта
+# Backend
+Flask==3.1.2
+PyJWT==2.7.0
+
+# Для production:
+# gunicorn==21.2.0
+# psycopg2-binary==2.9.9  # при переходе на PostgreSQL

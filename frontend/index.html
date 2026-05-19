@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpaceLearn — Интервальные повторения</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #818CF8;
+            --primary-dark: #3730A3;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            --radius: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+        
+        /* Layout */
+        .app { min-height: 100vh; display: flex; flex-direction: column; }
+        .navbar { background: white; border-bottom: 1px solid var(--gray-200); padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+        .navbar-brand { font-size: 20px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .navbar-brand svg { width: 28px; height: 28px; }
+        .navbar-actions { display: flex; align-items: center; gap: 12px; }
+        .main { flex: 1; max-width: 1200px; margin: 0 auto; width: 100%; padding: 24px; }
+        
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: white; color: var(--gray-700); border: 1px solid var(--gray-300); }
+        .btn-secondary:hover { background: var(--gray-50); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #DC2626; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-ghost { background: transparent; color: var(--gray-600); }
+        .btn-ghost:hover { background: var(--gray-100); }
+        .btn-sm { padding: 6px 12px; font-size: 13px; }
+        .btn-lg { padding: 14px 28px; font-size: 16px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 14px; font-weight: 500; color: var(--gray-700); margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 14px; transition: border-color 0.15s; outline: none; }
+        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+        .form-textarea { min-height: 80px; resize: vertical; }
+        
+        /* Cards */
+        .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .card-title { font-size: 18px; font-weight: 600; }
+        
+        /* Grid */
+        .grid { display: grid; gap: 16px; }
+        .grid-2 { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+        .grid-4 { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+        
+        /* Deck card */
+        .deck-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+        .deck-card:hover { box-shadow: var(--shadow-lg); border-color: var(--primary-light); transform: translateY(-2px); }
+        .deck-card-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+        .deck-card-desc { font-size: 13px; color: var(--gray-500); margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .deck-card-meta { display: flex; gap: 16px; font-size: 13px; color: var(--gray-400); }
+        .deck-card-badge { background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .deck-card-badge.zero { background: var(--gray-300); color: var(--gray-600); }
+        
+        /* Flashcard */
+        .flashcard-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; }
+        .flashcard { background: white; border-radius: 16px; box-shadow: var(--shadow-lg); width: 100%; max-width: 600px; min-height: 300px; display: flex; align-items: center; justify-content: center; padding: 40px; text-align: center; font-size: 22px; line-height: 1.5; cursor: pointer; transition: all 0.3s; position: relative; user-select: none; }
+        .flashcard:hover { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .flashcard.answer { background: linear-gradient(135deg, #EEF2FF, #E0E7FF); }
+        .flashcard-label { position: absolute; top: 16px; left: 20px; font-size: 12px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 1px; }
+        .flashcard-hint { font-size: 13px; color: var(--gray-400); margin-top: 16px; }
+        
+        /* Quality buttons */
+        .quality-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 600px; width: 100%; margin-top: 20px; }
+        .quality-btn { padding: 12px 8px; border-radius: 8px; border: 2px solid var(--gray-200); background: white; cursor: pointer; text-align: center; transition: all 0.15s; }
+        .quality-btn:hover { transform: scale(1.03); }
+        .quality-btn .q-num { font-size: 20px; font-weight: 700; display: block; }
+        .quality-btn .q-label { font-size: 11px; color: var(--gray-500); }
+        .quality-btn.q-0, .quality-btn.q-1 { border-color: #FCA5A5; }
+        .quality-btn.q-0:hover, .quality-btn.q-1:hover { background: #FEF2F2; }
+        .quality-btn.q-2 { border-color: #FCD34D; }
+        .quality-btn.q-2:hover { background: #FFFBEB; }
+        .quality-btn.q-3 { border-color: #FCD34D; }
+        .quality-btn.q-3:hover { background: #FFFBEB; }
+        .quality-btn.q-4 { border-color: #6EE7B7; }
+        .quality-btn.q-4:hover { background: #ECFDF5; }
+        .quality-btn.q-5 { border-color: #6EE7B7; }
+        .quality-btn.q-5:hover { background: #ECFDF5; }
+        
+        /* Progress bar */
+        .progress-bar { width: 100%; height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden; margin-bottom: 24px; }
+        .progress-bar-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.3s; }
+        
+        /* Stats */
+        .stat-card { background: white; border-radius: var(--radius); padding: 20px; text-align: center; box-shadow: var(--shadow); }
+        .stat-value { font-size: 32px; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 13px; color: var(--gray-500); margin-top: 4px; }
+        
+        /* History chart */
+        .chart-bar { display: flex; align-items: flex-end; gap: 4px; height: 150px; padding: 0 8px; }
+        .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; }
+        .chart-col-bar { width: 100%; min-width: 8px; background: var(--primary-light); border-radius: 4px 4px 0 0; transition: height 0.3s; }
+        .chart-col-label { font-size: 10px; color: var(--gray-400); margin-top: 4px; }
+        
+        /* Table */
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--gray-200); }
+        .table th { font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; }
+        .table td { font-size: 14px; }
+        .table tr:hover td { background: var(--gray-50); }
+        
+        /* Auth */
+        .auth-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); }
+        .auth-card { background: white; border-radius: 16px; box-shadow: var(--shadow-lg); padding: 40px; width: 100%; max-width: 420px; margin: 20px; }
+        .auth-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+        .auth-subtitle { font-size: 14px; color: var(--gray-500); text-align: center; margin-bottom: 24px; }
+        .auth-toggle { text-align: center; margin-top: 16px; font-size: 14px; color: var(--gray-500); }
+        .auth-toggle a { color: var(--primary); text-decoration: none; font-weight: 500; cursor: pointer; }
+        .auth-toggle a:hover { text-decoration: underline; }
+        
+        /* Alert */
+        .alert { padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 16px; }
+        .alert-error { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
+        .alert-success { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+        
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
+        .modal { background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 500px; margin: 20px; max-height: 90vh; overflow-y: auto; }
+        .modal-title { font-size: 20px; font-weight: 600; margin-bottom: 20px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+        
+        /* Empty state */
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state-title { font-size: 18px; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; }
+        .empty-state-desc { font-size: 14px; color: var(--gray-500); margin-bottom: 24px; }
+        
+        /* Responsive */
+        @media (max-width: 640px) {
+            .main { padding: 16px; }
+            .quality-buttons { grid-template-columns: repeat(2, 1fr); }
+            .flashcard { min-height: 220px; padding: 24px; font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, createContext, useContext } = React;
+
+        // ==================== API CLIENT ====================
+        const API_BASE = "/api";
+
+        // Django требует trailing slash перед query-string — нормализуем все пути
+        function ensureSlash(path) {
+            const [base, query] = path.split("?");
+            const fixed = base.endsWith("/") ? base : base + "/";
+            return query ? `${fixed}?${query}` : fixed;
+        }
+
+        // DRF возвращает ошибки полей в виде {field: [msg, ...]} либо {detail: ...} либо {error: ...}.
+        // Собираем человекочитаемое сообщение, чтобы показать пользователю что именно не так.
+        function formatApiError(data) {
+            if (!data) return "Ошибка сервера";
+            if (typeof data === "string") return data;
+            if (data.error) return data.error;
+            if (data.detail) return data.detail;
+            const parts = [];
+            for (const [key, val] of Object.entries(data)) {
+                const text = Array.isArray(val) ? val.join("; ") : String(val);
+                parts.push(key === "non_field_errors" ? text : `${key}: ${text}`);
+            }
+            return parts.join("\n") || "Ошибка сервера";
+        }
+
+        async function apiFetch(path, options = {}) {
+            const token = localStorage.getItem("token");
+            const headers = { "Content-Type": "application/json", ...options.headers };
+            if (token) headers["Authorization"] = `Bearer ${token}`;
+
+            const res = await fetch(`${API_BASE}${ensureSlash(path)}`, { ...options, headers });
+            const data = res.status === 204 ? null : await res.json().catch(() => null);
+            if (!res.ok) throw new Error(formatApiError(data));
+            return data;
+        }
+
+        // ==================== AUTH CONTEXT ====================
+        const AuthContext = createContext(null);
+
+        function AuthProvider({ children }) {
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const token = localStorage.getItem("token");
+                if (token) {
+                    apiFetch("/auth/me").then(setUser).catch(() => {
+                        localStorage.removeItem("token");
+                    }).finally(() => setLoading(false));
+                } else {
+                    setLoading(false);
+                }
+            }, []);
+
+            const login = async (username, password) => {
+                const data = await apiFetch("/auth/login", {
+                    method: "POST",
+                    body: JSON.stringify({ username, password }),
+                });
+                localStorage.setItem("token", data.token);
+                setUser(data.user);
+            };
+
+            const register = async (username, email, password) => {
+                const data = await apiFetch("/auth/register", {
+                    method: "POST",
+                    body: JSON.stringify({ username, email, password }),
+                });
+                localStorage.setItem("token", data.token);
+                setUser(data.user);
+            };
+
+            const logout = () => {
+                localStorage.removeItem("token");
+                setUser(null);
+            };
+
+            if (loading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh"}}>Загрузка...</div>;
+            return <AuthContext.Provider value={{ user, login, register, logout }}>{children}</AuthContext.Provider>;
+        }
+
+        function useAuth() { return useContext(AuthContext); }
+
+        // ==================== COMPONENTS ====================
+
+        function AuthPage() {
+            const { login, register } = useAuth();
+            const [isLogin, setIsLogin] = useState(true);
+            const [username, setUsername] = useState("");
+            const [email, setEmail] = useState("");
+            const [password, setPassword] = useState("");
+            const [error, setError] = useState("");
+            const [submitting, setSubmitting] = useState(false);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError("");
+                setSubmitting(true);
+                try {
+                    if (isLogin) await login(username, password);
+                    else await register(username, email, password);
+                } catch (err) { setError(err.message); }
+                setSubmitting(false);
+            };
+
+            return (
+                <div className="auth-container">
+                    <div className="auth-card">
+                        <div style={{textAlign:"center",marginBottom:24}}>
+                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="12" fill="#4F46E5"/><path d="M14 32V18l10-6 10 6v14l-10 6-10-6z" stroke="white" strokeWidth="2.5" fill="none"/><circle cx="24" cy="24" r="4" fill="white"/></svg>
+                        </div>
+                        <h1 className="auth-title">{isLogin ? "Вход в SpaceLearn" : "Регистрация"}</h1>
+                        <p className="auth-subtitle">{isLogin ? "Войдите, чтобы продолжить обучение" : "Создайте аккаунт для начала обучения"}</p>
+                        
+                        {error && <div className="alert alert-error">{error}</div>}
+                        
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label className="form-label">Имя пользователя</label>
+                                <input className="form-input" value={username} onChange={e => setUsername(e.target.value)} placeholder="username" required />
+                            </div>
+                            {!isLogin && (
+                                <div className="form-group">
+                                    <label className="form-label">Email</label>
+                                    <input className="form-input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="user@example.com" required />
+                                </div>
+                            )}
+                            <div className="form-group">
+                                <label className="form-label">Пароль</label>
+                                <input className="form-input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••" required />
+                            </div>
+                            <button className="btn btn-primary btn-lg" style={{width:"100%"}} disabled={submitting}>
+                                {submitting ? "Подождите..." : (isLogin ? "Войти" : "Зарегистрироваться")}
+                            </button>
+                        </form>
+                        
+                        <div className="auth-toggle">
+                            {isLogin ? (
+                                <>Нет аккаунта? <a onClick={() => { setIsLogin(false); setError(""); }}>Зарегистрироваться</a></>
+                            ) : (
+                                <>Уже есть аккаунт? <a onClick={() => { setIsLogin(true); setError(""); }}>Войти</a></>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Navbar() {
+            const { user, logout } = useAuth();
+            return (
+                <nav className="navbar">
+                    <a className="navbar-brand" href="#" onClick={() => window.dispatchEvent(new CustomEvent("navigate", {detail:"decks"}))}>
+                        <svg width="28" height="28" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="12" fill="#4F46E5"/><path d="M14 32V18l10-6 10 6v14l-10 6-10-6z" stroke="white" strokeWidth="2.5" fill="none"/><circle cx="24" cy="24" r="4" fill="white"/></svg>
+                        SpaceLearn
+                    </a>
+                    <div className="navbar-actions">
+                        <span style={{fontSize:14,color:"var(--gray-500)"}}>{user?.username}</span>
+                        <button className="btn btn-ghost btn-sm" onClick={logout}>Выйти</button>
+                    </div>
+                </nav>
+            );
+        }
+
+        // ==================== DECK LIST ====================
+        function DeckList({ onSelect, onReview, onStats }) {
+            const [decks, setDecks] = useState([]);
+            const [showCreate, setShowCreate] = useState(false);
+            const [title, setTitle] = useState("");
+            const [desc, setDesc] = useState("");
+
+            const loadDecks = useCallback(() => {
+                apiFetch("/decks").then(setDecks).catch(console.error);
+            }, []);
+
+            useEffect(() => { loadDecks(); }, [loadDecks]);
+
+            const handleCreate = async () => {
+                if (!title.trim()) return;
+                await apiFetch("/decks", { method: "POST", body: JSON.stringify({ title, description: desc }) });
+                setTitle(""); setDesc(""); setShowCreate(false);
+                loadDecks();
+            };
+
+            const totalDue = decks.reduce((s, d) => s + (d.due_count || 0), 0);
+
+            return (
+                <div>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+                        <div>
+                            <h1 style={{fontSize:24,fontWeight:700}}>Мои колоды</h1>
+                            {totalDue > 0 && <p style={{fontSize:14,color:"var(--gray-500)",marginTop:4}}>Карточек на повторение сегодня: <strong style={{color:"var(--primary)"}}>{totalDue}</strong></p>}
+                        </div>
+                        <div style={{display:"flex",gap:8}}>
+                            <button className="btn btn-secondary btn-sm" onClick={onStats}>📊 Статистика</button>
+                            {totalDue > 0 && <button className="btn btn-success btn-sm" onClick={() => onReview(null)}>▶ Повторить все ({totalDue})</button>}
+                            <button className="btn btn-primary btn-sm" onClick={() => setShowCreate(true)}>+ Новая колода</button>
+                        </div>
+                    </div>
+
+                    {decks.length === 0 ? (
+                        <div className="empty-state">
+                            <div className="empty-state-icon">📚</div>
+                            <div className="empty-state-title">У вас пока нет колод</div>
+                            <div className="empty-state-desc">Создайте первую колоду, чтобы начать обучение</div>
+                            <button className="btn btn-primary" onClick={() => setShowCreate(true)}>Создать колоду</button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-2">
+                            {decks.map(deck => (
+                                <div key={deck.id} className="deck-card" onClick={() => onSelect(deck)}>
+                                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                                        <div className="deck-card-title">{deck.title}</div>
+                                        <span className={`deck-card-badge ${(deck.due_count||0)===0?"zero":""}`}>
+                                            {deck.due_count || 0} к повторению
+                                        </span>
+                                    </div>
+                                    {deck.description && <div className="deck-card-desc">{deck.description}</div>}
+                                    <div className="deck-card-meta">
+                                        <span>📇 {deck.card_count || 0} карточек</span>
+                                        {deck.is_public ? <span>🌐 Публичная</span> : <span>🔒 Приватная</span>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {showCreate && (
+                        <div className="modal-overlay" onClick={() => setShowCreate(false)}>
+                            <div className="modal" onClick={e => e.stopPropagation()}>
+                                <h2 className="modal-title">Новая колода</h2>
+                                <div className="form-group">
+                                    <label className="form-label">Название</label>
+                                    <input className="form-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Например: Термины по БД" autoFocus />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Описание (необязательно)</label>
+                                    <textarea className="form-input form-textarea" value={desc} onChange={e => setDesc(e.target.value)} placeholder="Краткое описание колоды..." />
+                                </div>
+                                <div className="modal-actions">
+                                    <button className="btn btn-secondary" onClick={() => setShowCreate(false)}>Отмена</button>
+                                    <button className="btn btn-primary" onClick={handleCreate} disabled={!title.trim()}>Создать</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ==================== DECK VIEW ====================
+        function DeckView({ deck, onBack, onReview }) {
+            const [cards, setCards] = useState([]);
+            const [showAdd, setShowAdd] = useState(false);
+            const [showImport, setShowImport] = useState(false);
+            const [editCard, setEditCard] = useState(null);
+            const [front, setFront] = useState("");
+            const [back, setBack] = useState("");
+            const [importText, setImportText] = useState("");
+            const [dueCards, setDueCards] = useState([]);
+
+            const loadCards = useCallback(() => {
+                apiFetch(`/decks/${deck.id}/cards`).then(setCards);
+                apiFetch(`/review/today?deck_id=${deck.id}`).then(setDueCards);
+            }, [deck.id]);
+
+            useEffect(() => { loadCards(); }, [loadCards]);
+
+            const handleAddCard = async () => {
+                if (!front.trim() || !back.trim()) return;
+                await apiFetch(`/decks/${deck.id}/cards`, {
+                    method: "POST", body: JSON.stringify({ front, back })
+                });
+                setFront(""); setBack(""); setShowAdd(false);
+                loadCards();
+            };
+
+            const handleEditCard = async () => {
+                if (!front.trim() || !back.trim()) return;
+                await apiFetch(`/cards/${editCard.id}`, {
+                    method: "PUT", body: JSON.stringify({ front, back })
+                });
+                setEditCard(null); setFront(""); setBack("");
+                loadCards();
+            };
+
+            const handleDeleteCard = async (cardId) => {
+                if (!confirm("Удалить карточку?")) return;
+                await apiFetch(`/cards/${cardId}`, { method: "DELETE" });
+                loadCards();
+            };
+
+            const handleImport = async () => {
+                const lines = importText.trim().split("\n").filter(l => l.includes(";") || l.includes("\t"));
+                const cardsData = lines.map(l => {
+                    const sep = l.includes("\t") ? "\t" : ";";
+                    const [f, ...rest] = l.split(sep);
+                    return { front: f.trim(), back: rest.join(sep).trim() };
+                }).filter(c => c.front && c.back);
+                
+                if (cardsData.length === 0) { alert("Не удалось распознать карточки. Используйте формат: вопрос;ответ"); return; }
+                
+                await apiFetch(`/decks/${deck.id}/import`, {
+                    method: "POST", body: JSON.stringify({ cards: cardsData })
+                });
+                setImportText(""); setShowImport(false);
+                loadCards();
+            };
+
+            const handleDeleteDeck = async () => {
+                if (!confirm(`Удалить колоду "${deck.title}" и все её карточки?`)) return;
+                await apiFetch(`/decks/${deck.id}`, { method: "DELETE" });
+                onBack();
+            };
+
+            return (
+                <div>
+                    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
+                        <button className="btn btn-ghost btn-sm" onClick={onBack}>← Назад</button>
+                        <h1 style={{fontSize:24,fontWeight:700,flex:1}}>{deck.title}</h1>
+                        <button className="btn btn-danger btn-sm" onClick={handleDeleteDeck}>🗑 Удалить</button>
+                    </div>
+
+                    <div style={{display:"flex",gap:8,marginBottom:24,flexWrap:"wrap"}}>
+                        {dueCards.length > 0 && (
+                            <button className="btn btn-success" onClick={() => onReview(deck.id)}>
+                                ▶ Начать повторение ({dueCards.length})
+                            </button>
+                        )}
+                        <button className="btn btn-primary" onClick={() => { setFront(""); setBack(""); setShowAdd(true); }}>+ Добавить карточку</button>
+                        <button className="btn btn-secondary" onClick={() => setShowImport(true)}>📥 Импорт</button>
+                    </div>
+
+                    {cards.length === 0 ? (
+                        <div className="empty-state">
+                            <div className="empty-state-icon">🃏</div>
+                            <div className="empty-state-title">Колода пуста</div>
+                            <div className="empty-state-desc">Добавьте карточки вручную или импортируйте из CSV</div>
+                        </div>
+                    ) : (
+                        <div className="card">
+                            <table className="table">
+                                <thead><tr><th style={{width:"5%"}}>#</th><th style={{width:"40%"}}>Лицевая сторона</th><th style={{width:"40%"}}>Оборотная сторона</th><th style={{width:"15%"}}>Действия</th></tr></thead>
+                                <tbody>
+                                    {cards.map((card, i) => (
+                                        <tr key={card.id}>
+                                            <td style={{color:"var(--gray-400)"}}>{i+1}</td>
+                                            <td>{card.front}</td>
+                                            <td>{card.back}</td>
+                                            <td>
+                                                <button className="btn btn-ghost btn-sm" onClick={() => { setEditCard(card); setFront(card.front); setBack(card.back); }}>✏️</button>
+                                                <button className="btn btn-ghost btn-sm" onClick={() => handleDeleteCard(card.id)}>🗑</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
+                    {(showAdd || editCard) && (
+                        <div className="modal-overlay" onClick={() => { setShowAdd(false); setEditCard(null); }}>
+                            <div className="modal" onClick={e => e.stopPropagation()}>
+                                <h2 className="modal-title">{editCard ? "Редактировать карточку" : "Новая карточка"}</h2>
+                                <div className="form-group">
+                                    <label className="form-label">Лицевая сторона (вопрос)</label>
+                                    <textarea className="form-input form-textarea" value={front} onChange={e => setFront(e.target.value)} placeholder="Вопрос или термин" autoFocus />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Оборотная сторона (ответ)</label>
+                                    <textarea className="form-input form-textarea" value={back} onChange={e => setBack(e.target.value)} placeholder="Ответ или определение" />
+                                </div>
+                                <div className="modal-actions">
+                                    <button className="btn btn-secondary" onClick={() => { setShowAdd(false); setEditCard(null); }}>Отмена</button>
+                                    <button className="btn btn-primary" onClick={editCard ? handleEditCard : handleAddCard} disabled={!front.trim() || !back.trim()}>
+                                        {editCard ? "Сохранить" : "Добавить"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {showImport && (
+                        <div className="modal-overlay" onClick={() => setShowImport(false)}>
+                            <div className="modal" onClick={e => e.stopPropagation()}>
+                                <h2 className="modal-title">Импорт карточек</h2>
+                                <p style={{fontSize:13,color:"var(--gray-500)",marginBottom:16}}>
+                                    Вставьте данные в формате: <strong>вопрос;ответ</strong> (каждая карточка на новой строке). Разделитель: <code>;</code> или <code>Tab</code>.
+                                </p>
+                                <textarea className="form-input form-textarea" style={{minHeight:200}} value={importText} onChange={e => setImportText(e.target.value)}
+                                    placeholder={"Что такое HTML?;Язык разметки гипертекста\nЧто такое CSS?;Каскадные таблицы стилей\nЧто такое JS?;Язык программирования"} />
+                                <div className="modal-actions">
+                                    <button className="btn btn-secondary" onClick={() => setShowImport(false)}>Отмена</button>
+                                    <button className="btn btn-primary" onClick={handleImport} disabled={!importText.trim()}>Импортировать</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ==================== REVIEW SESSION ====================
+        function ReviewSession({ deckId, onFinish }) {
+            const [cards, setCards] = useState([]);
+            const [currentIdx, setCurrentIdx] = useState(0);
+            const [showAnswer, setShowAnswer] = useState(false);
+            const [finished, setFinished] = useState(false);
+            const [results, setResults] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const url = deckId ? `/review/today?deck_id=${deckId}` : "/review/today";
+                apiFetch(url).then(data => {
+                    setCards(data);
+                    setLoading(false);
+                    if (data.length === 0) setFinished(true);
+                });
+            }, [deckId]);
+
+            const handleQuality = async (quality) => {
+                const card = cards[currentIdx];
+                try {
+                    const res = await apiFetch(`/review/${card.id}`, {
+                        method: "POST",
+                        body: JSON.stringify({ quality }),
+                    });
+                    setResults(prev => [...prev, { card, quality, result: res.sm2_result }]);
+                } catch (err) { console.error(err); }
+
+                if (currentIdx + 1 >= cards.length) {
+                    setFinished(true);
+                } else {
+                    setCurrentIdx(prev => prev + 1);
+                    setShowAnswer(false);
+                }
+            };
+
+            if (loading) return <div style={{textAlign:"center",padding:60}}>Загрузка карточек...</div>;
+
+            if (finished) {
+                const avgQ = results.length > 0 ? (results.reduce((s,r) => s + r.quality, 0) / results.length).toFixed(1) : 0;
+                return (
+                    <div style={{maxWidth:600,margin:"0 auto",textAlign:"center",padding:"40px 20px"}}>
+                        <div style={{fontSize:64,marginBottom:16}}>🎉</div>
+                        <h2 style={{fontSize:24,fontWeight:700,marginBottom:8}}>Сессия завершена!</h2>
+                        <p style={{color:"var(--gray-500)",marginBottom:32}}>
+                            Повторено карточек: <strong>{results.length}</strong> • Средняя оценка: <strong>{avgQ}</strong>
+                        </p>
+                        {results.length > 0 && (
+                            <div className="card" style={{textAlign:"left",marginBottom:24}}>
+                                <table className="table">
+                                    <thead><tr><th>Карточка</th><th>Оценка</th><th>Интервал</th><th>EF</th></tr></thead>
+                                    <tbody>
+                                        {results.map((r, i) => (
+                                            <tr key={i}>
+                                                <td style={{maxWidth:200,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.card.front}</td>
+                                                <td><span style={{fontWeight:600,color: r.quality >= 3 ? "var(--success)" : "var(--danger)"}}>{r.quality}</span></td>
+                                                <td>{r.result.interval} дн.</td>
+                                                <td>{r.result.easiness_factor}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                        <button className="btn btn-primary btn-lg" onClick={onFinish}>Вернуться к колодам</button>
+                    </div>
+                );
+            }
+
+            const card = cards[currentIdx];
+            const progress = ((currentIdx) / cards.length) * 100;
+
+            return (
+                <div>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                        <button className="btn btn-ghost btn-sm" onClick={onFinish}>← Выйти</button>
+                        <span style={{fontSize:14,color:"var(--gray-500)"}}>{currentIdx + 1} / {cards.length}</span>
+                    </div>
+                    
+                    <div className="progress-bar">
+                        <div className="progress-bar-fill" style={{width: `${progress}%`}} />
+                    </div>
+
+                    <div className="flashcard-container">
+                        <div className={`flashcard ${showAnswer ? "answer" : ""}`} onClick={() => !showAnswer && setShowAnswer(true)}>
+                            <span className="flashcard-label">{showAnswer ? "Ответ" : "Вопрос"}</span>
+                            {showAnswer ? card.back : card.front}
+                        </div>
+
+                        {!showAnswer ? (
+                            <p className="flashcard-hint">Нажмите на карточку, чтобы увидеть ответ</p>
+                        ) : (
+                            <div className="quality-buttons">
+                                {[
+                                    { q: 0, label: "Не помню", emoji: "😵" },
+                                    { q: 1, label: "Плохо", emoji: "😟" },
+                                    { q: 2, label: "Почти", emoji: "🤔" },
+                                    { q: 3, label: "Трудно", emoji: "😐" },
+                                    { q: 4, label: "Хорошо", emoji: "🙂" },
+                                    { q: 5, label: "Отлично", emoji: "😎" },
+                                ].map(({ q, label, emoji }) => (
+                                    <button key={q} className={`quality-btn q-${q}`} onClick={() => handleQuality(q)}>
+                                        <span className="q-num">{emoji}</span>
+                                        <span className="q-label">{q} — {label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== STATISTICS ====================
+        function StatsPage({ onBack }) {
+            const [stats, setStats] = useState(null);
+
+            useEffect(() => {
+                apiFetch("/stats/overview").then(setStats);
+            }, []);
+
+            if (!stats) return <div style={{textAlign:"center",padding:60}}>Загрузка статистики...</div>;
+
+            const maxReviews = Math.max(...(stats.daily_history.map(d => d.review_count) || [1]), 1);
+
+            return (
+                <div>
+                    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
+                        <button className="btn btn-ghost btn-sm" onClick={onBack}>← Назад</button>
+                        <h1 style={{fontSize:24,fontWeight:700}}>Статистика</h1>
+                    </div>
+
+                    <div className="grid grid-4" style={{marginBottom:24}}>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.total_cards}</div>
+                            <div className="stat-label">Всего карточек</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value" style={{color:"var(--success)"}}>{stats.reviewed_cards}</div>
+                            <div className="stat-label">Изучается</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value" style={{color:"var(--warning)"}}>{stats.due_today}</div>
+                            <div className="stat-label">На повторение</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.average_ef}</div>
+                            <div className="stat-label">Средний EF</div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <h3 className="card-title">Повторения за 30 дней</h3>
+                        </div>
+                        {stats.daily_history.length === 0 ? (
+                            <p style={{color:"var(--gray-400)",textAlign:"center",padding:40}}>Пока нет данных. Начните повторять карточки!</p>
+                        ) : (
+                            <div className="chart-bar">
+                                {stats.daily_history.map((day, i) => (
+                                    <div key={i} className="chart-col">
+                                        <div className="chart-col-bar" style={{height: `${(day.review_count / maxReviews) * 100}%`, minHeight: 4}} title={`${day.day}: ${day.review_count} повторений`} />
+                                        <span className="chart-col-label">{day.day.slice(5)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== APP ====================
+        function App() {
+            const { user } = useAuth();
+            const [page, setPage] = useState("decks");
+            const [selectedDeck, setSelectedDeck] = useState(null);
+            const [reviewDeckId, setReviewDeckId] = useState(null);
+
+            useEffect(() => {
+                const handler = (e) => setPage(e.detail);
+                window.addEventListener("navigate", handler);
+                return () => window.removeEventListener("navigate", handler);
+            }, []);
+
+            if (!user) return <AuthPage />;
+
+            return (
+                <div className="app">
+                    <Navbar />
+                    <div className="main">
+                        {page === "decks" && !selectedDeck && (
+                            <DeckList
+                                onSelect={(deck) => { setSelectedDeck(deck); setPage("deck-view"); }}
+                                onReview={(deckId) => { setReviewDeckId(deckId); setPage("review"); }}
+                                onStats={() => setPage("stats")}
+                            />
+                        )}
+                        {page === "deck-view" && selectedDeck && (
+                            <DeckView
+                                deck={selectedDeck}
+                                onBack={() => { setSelectedDeck(null); setPage("decks"); }}
+                                onReview={(deckId) => { setReviewDeckId(deckId); setPage("review"); }}
+                            />
+                        )}
+                        {page === "review" && (
+                            <ReviewSession
+                                deckId={reviewDeckId}
+                                onFinish={() => { setReviewDeckId(null); setSelectedDeck(null); setPage("decks"); }}
+                            />
+                        )}
+                        {page === "stats" && (
+                            <StatsPage onBack={() => setPage("decks")} />
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== RENDER ====================
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(<AuthProvider><App /></AuthProvider>);
+    </script>
+</body>
+</html>
