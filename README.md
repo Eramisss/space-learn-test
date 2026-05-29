@@ -18,6 +18,7 @@ python manage.py runserver
 
 ```bash
 python manage.py test apps.reviews.tests -v 2
+python manage.py test apps.decks.tests -v 2
 python manage.py test apps.tests_api -v 2
 ```
 
